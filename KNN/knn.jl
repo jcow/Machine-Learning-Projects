@@ -13,10 +13,7 @@ function knn_maxmin{T}(D::Array{T, 2})
 end
 
 function knn_dists{T}(train::Array{T, 2}, obs::Array{T, 1})
-    tmx, tmn = knn_maxmin(train)
-    normtrain = knn_normalize(train, tmx, tmn)
-    normobs = knn_normalize(obs, tmx, tmn)
-    return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, transpose(normobs), normtrain), 2)))
+    return vec(sqrt(sum(broadcast((a, b) -> (a-b).^2, transpose(obs), train), 2)))
 end
 
 function knn_weights{T}(dists::Array{T, 1})
@@ -42,14 +39,20 @@ function knn_tally{T, J}(votes::Array{T, 1}, classes::Array{J, 1})
     return winner
 end
 
-function knn{T, J}(k::Int, train::Array{T, 2}, classes::Array{J, 1}, obs::Array{T, 1})
-    dists = knn_dists(train, obs)
-    nearest = sortperm(dists)[1:k]
-    return knn_tally(ones(k), classes[nearest])
+function knn{T, J}(k::Int, train::Array{T, 2}, classes::Array{J, 1}, obs::Array{T, 1}, weighted=false)
+    tmx, tmn = knn_maxmin(train)
+    normtrain = knn_normalize(train, tmx, tmn)
+    normobs = knn_normalize(obs, tmx, tmn)
+    normdists = knn_dists(normtrain, normobs)
+    nearest = sortperm(normdists)[1:k]
+    if weighted
+        normweights = knn_weights(normdists)
+    else
+        normweights = ones(length(normdists))
+    end
+    return knn_tally(normweights[nearest], classes[nearest])
 end
 
 function knn{T, J}(train::Array{T, 2}, classes::Array{J, 1}, obs::Array{T, 1})
-    dists = knn_dists(train, obs)
-    weights = knn_weights(dists)
-    return knn_tally(weights, classes)
+    return knn(size(train, 1), train, classes, obs, true)
 end
