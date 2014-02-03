@@ -1,19 +1,24 @@
 using StatsBase
 
+# returns the min and the max from a 2d array
+function knn_max_min{T}(D::Array{T, 2})
+    mx = vec(mapslices(maximum, D, 1))
+    mn = vec(mapslices(minimum, D, 1))
+    return mx, mn
+end
 
-function normalizeData(data)
-    dataSize = size(data)
-    for i = 1:dataSize[2]
-	col = data[1:end, i]
-	mx = zeros(Float64, dataSize[1], 1)
-	mn = zeros(Float64, dataSize[1], 1)
-	mx = fill!(mx, maximum(col))
-	mn = fill!(mn, minimum(col))
+# normalize over the D by row with the min max of each row in mx mn
+function normalize_data_test{T}(D::Array{T, 2}, mx::Array{T, 1}, mn::Array{T, 1})
+    return mapslices(x -> (x - mn) ./ (mx - mn), D, 2)
+end
 
-	data[1:end, i] = broadcast((data, mx, mn) -> (data - mn) / (mx - mn), col, mx, mn)
-    end
+function knn_dists{T}(D::Array{T,2}, obs::Array{T,1})
+    return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, obs, D), 2)))
+end
 
-    return data
+todo - need to check for 0's
+function knn_weighted{T}(D::Array{T,2}, obs::Array{T,1})
+    return 1 ./ knn_dists(D, obs) .^ 2
 end
 
 function knn(k, train, classes, obs)
@@ -29,9 +34,6 @@ end
 train_raw = readcsv("fruit.csv")[2:end, 1:end]
 train_data = convert(Array{Float64, 2}, train_raw[1:end, 1:end-1])
 train_classes = train_raw[1:end, end]
-
-maxTrainData = maximum(train_raw)
-minTrainData = minimum(train_raw)
 
 test_raw = readcsv("testFruit.csv")[2:end, 1:end]
 test_data = convert(Array{Float64, 2}, test_raw[1:end, 1:end-1])
