@@ -11,6 +11,16 @@ function knn_normalize{T}(D::Array{T, 2}, mx::Array{T, 1}, mn::Array{T, 1})
     return mapslices(x -> (x - mn) ./ (mx - mn), D, 2)
 end
 
+# get the distance from the dataset to the point
+function knn_distances{T}(D::Array{T, 2}, obs::Array{T,1})
+	return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, transpose(obs), D), 2)))
+end
+
+
+function knn{T}(D::Array{T, 2}, mx::Array{T,1}, mn::Array{T,1})
+
+end
+
 # function knn_dists{T}(D::Array{T,2}, obs::Array{T,1})
 #     return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, obs, D), 2)))
 # end
