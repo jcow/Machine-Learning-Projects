@@ -18,7 +18,16 @@ normalized_points = knn_normalize(test_points, mx, mn)
 @test_approx_eq normalized_points [0.125 0.125; 0.875 0.875] # 1/8th and 7/8ths of the train
 
 # Test KNN Dists
-train_dists = knn_distances(normalized_train, vec(normalized_points[1,:]))
-println(train_dists)
+const random_test_dists = knn_distances([1 1; 3 3], vec([2 2]))
+@test_approx_eq_eps random_test_dists [1.41,1.41] eps
 
+const classified = knn(2, train, classes, test_points)
+@test classified[1] == "a"
+@test classified[2] == "b"
+
+const classified2 = knn(3, [1 1; 2 2; 3 3], ["a", "b", "a"], [2 3])
+@test classified2[1] == "a"
+
+const classified3 = knn(1, [1 1; 2 2; 8 8;], ["a", "b", "c"], [2 3])
+@test classified3[1] == "b"
 
