@@ -54,6 +54,29 @@ function knn{T,J}(k, D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 
 end
 
 
+function knn_weighted{T,J}(D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 2})
+	dims = size(test_points)
+
+	(mx, mn) = knn_max_min(D)
+	D = knn_normalize(D, mx, mn)
+	test_points = knn_normalize(test_points, mx, mn)
+
+	k = size(test_points)[1]
+	ret = Array(J, dims[1], 1)
+	for i = 1:dims[1]
+		dist = knn_distances(D, vec(test_points[i,:]))
+		indexes = sortperm(dist)
+		selected_classes = classes[indexes[1:k]]
+		ret[i] = knn_tally(selected_classes)
+	end
+	return ret
+end
+
+function knn_weights{T}(D::Array{T, 2}, obs::Array{T,1})
+	return 1 ./ knn_distances(D, obs) .^2
+end
+
+
 # function knn_dists{T}(D::Array{T,2}, obs::Array{T,1})
 #     return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, obs, D), 2)))
 # end

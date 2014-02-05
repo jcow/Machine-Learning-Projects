@@ -50,3 +50,10 @@ const classified2 = knn(3, [1 1; 2 2; 3 3], ["a", "b", "a"], [2 3])
 const classified3 = knn(1, [1 1; 2 2; 8 8;], ["a", "b", "c"], [2 3])
 @test classified3[1] == "b"
 
+
+#------------------
+# Test Weights
+#------------------
+const found_weight = knn_weights([1.0 2; 2 2], vec([1.0 1]))
+@test_approx_eq_eps found_weight [1, 0.49] eps
+
