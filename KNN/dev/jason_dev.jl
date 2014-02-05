@@ -16,7 +16,7 @@ function knn_distances{T}(D::Array{T, 2}, obs::Array{T,1})
 	return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, transpose(obs), D), 2)))
 end
 
-function tally{T}(classes::Array{T,1})
+function knn_tally{T}(classes::Array{T,1})
 	tallies = Dict{T, Int64}()
     for i = 1:length(classes)
     	class = classes[i]
@@ -48,7 +48,7 @@ function knn{T,J}(k, D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 
 		dist = knn_distances(D, vec(test_points[i,:]))
 		indexes = sortperm(dist)
 		selected_classes = classes[indexes[1:k]]
-		ret[i] = tally(selected_classes)
+		ret[i] = knn_tally(selected_classes)
 	end
 	return ret
 end
