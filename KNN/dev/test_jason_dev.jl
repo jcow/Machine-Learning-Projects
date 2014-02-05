@@ -25,13 +25,13 @@ normalized_points = knn_normalize(test_points, mx, mn)
 #----------------------
 # Test Tallies
 #----------------------
-const tallies = knn_tally(["a", "a", "b", "b", "b"])
+const tallies = knn_tally(["a", "a", "b", "b", "b"], ones(5))
 @test tallies == "b"
 
-const tallies2 = knn_tally(["a", "b" ,"c", "b"])
+const tallies2 = knn_tally(["a", "b" ,"c", "b"], ones(5))
 @test tallies2 == "b"
 
-const tallies3 = knn_tally(["a", "a", "b", "b"])
+const tallies3 = knn_tally(["a", "a", "b", "b"], ones(5))
 @test tallies3 == "b"
 
 #----------------------
@@ -57,3 +57,7 @@ const classified3 = knn(1, [1 1; 2 2; 8 8;], ["a", "b", "c"], [2 3])
 const found_weight = knn_weights([1.0 2; 2 2], vec([1.0 1]))
 @test_approx_eq_eps found_weight [1, 0.49] eps
 
+#----------------------
+# Test Weighted KNN
+#----------------------
+TODO, test this sucka
