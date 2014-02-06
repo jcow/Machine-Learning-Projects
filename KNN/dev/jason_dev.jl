@@ -16,12 +16,13 @@ function knn_distances{T}(D::Array{T, 2}, obs::Array{T,1})
 	return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, transpose(obs), D), 2)))
 end
 
+# tally the votes for each guess
 function knn_tally{T, J}(classes::Array{T,1}, weights::Array{J,1})
-	tallies = Dict{T, Int64}()
+	tallies = Dict{T, J}()
     for i = 1:length(classes)
     	class = classes[i]
         if !haskey(tallies, class)
-        	tallies[class] = 0
+        	tallies[class] = 0.0
        	end
 
        	tallies[class] += weights[i]
@@ -37,10 +38,12 @@ function knn_tally{T, J}(classes::Array{T,1}, weights::Array{J,1})
    	return winner[1]
 end
 
-function knn_weights{T}(D::Array{T, 2}, obs::Array{T,1})
-	return 1 ./ knn_distances(D, obs) .^2
+# get a weighted matrix
+function knn_weights{T}(dists::Vector{T})
+    return 1 ./ dists .^ 2
 end
 
+# main knn function
 function knn{T,J}(k, D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 2}, weighted = false)
 	(mx, mn) = knn_max_min(D)
 	D = knn_normalize(D, mx, mn)
@@ -52,49 +55,16 @@ function knn{T,J}(k, D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 
 	ret = Array(J, dims[1], 1)
 	for i = 1:dims[1]
 		observation = vec(test_points[i,:])
-		dist = knn_distances(D, observation)
-		indexes = sortperm(dist)
+		dists = knn_distances(D, observation)
+		indexes = sortperm(dists)
 		selected_classes = classes[indexes[1:k]]
 
 		if weighted == true
-			weights = knn_weights(D, )
+			weights = knn_weights(dists)
 		end
 
-		ret[i] = knn_tally(selected_classes, weights)
+		ret[i] = knn_tally(selected_classes, weights[indexes[1:k]])
 	end
 
 	return ret
 end
-
-
-
-# function knn_weighted{T,J}(D::Array{T, 2}, classes::Array{J,1}, test_points::Array{T, 2})
-# 	dims = size(test_points)
-
-# 	(mx, mn) = knn_max_min(D)
-# 	D = knn_normalize(D, mx, mn)
-# 	test_points = knn_normalize(test_points, mx, mn)
-
-# 	k = size(test_points)[1]
-# 	ret = Array(J, dims[1], 1)
-# 	for i = 1:dims[1]
-# 		dist = knn_distances(D, vec(test_points[i,:]))
-# 		indexes = sortperm(dist)
-# 		selected_classes = classes[indexes[1:k]]
-# 		ret[i] = knn_tally(selected_classes)
-# 	end
-# 	return ret
-# end
-
-# function knn_dists{T}(D::Array{T,2}, obs::Array{T,1})
-#     return vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, obs, D), 2)))
-# end
-
-# function knn_weighted{T}(D::Array{T,2}, obs::Array{T,1})
-#     return 1 ./ knn_dists(D, obs) .^ 2
-# end
-
-# function knn(k, train, classes, obs)
-#     nearest = sortperm(vec(sqrt(sum(broadcast((a, b) -> (a-b)^2, obs, train), 2))))[1:k]
-#     return mode(classes[nearest])
-# end
