@@ -1,26 +1,26 @@
-function knn_normalize{T}(D::Array{T, 2}, mx::Array{T, 1}, mn::Array{T, 1})
+function knn_normalize{T}(D::Matrix{T}, mx::Vector{T}, mn::Vector{T})
     return mapslices(x -> (x - mn) ./ (mx - mn), D, 2)
 end
 
-function knn_normalize{T}(D::Array{T, 1}, mx::Array{T, 1}, mn::Array{T, 1})
+function knn_normalize{T}(D::Vector{T}, mx::Vector{T}, mn::Vector{T})
     return (D - mn) ./ (mx - mn)
 end
 
-function knn_maxmin{T}(D::Array{T, 2})
+function knn_maxmin{T}(D::Matrix{T})
     mx = vec(mapslices(maximum, D, 1))
     mn = vec(mapslices(minimum, D, 1))
     return mx, mn
 end
 
-function knn_dists{T}(train::Array{T, 2}, obs::Array{T, 1})
+function knn_dists{T}(train::Matrix{T}, obs::Vector{T})
     return vec(sqrt(sum(broadcast((a, b) -> (a-b).^2, transpose(obs), train), 2)))
 end
 
-function knn_weights{T}(dists::Array{T, 1})
+function knn_weights{T}(dists::Vector{T})
     return 1 ./ dists .^ 2
 end
 
-function knn_tally{T, J}(votes::Array{T, 1}, classes::Array{J, 1})
+function knn_tally{T, J}(votes::Vector{T}, classes::Vector{J})
     tallies = Dict{J, T}()
     for (c, v) = zip(classes, votes)
         if ! haskey(tallies, c)
@@ -28,8 +28,8 @@ function knn_tally{T, J}(votes::Array{T, 1}, classes::Array{J, 1})
         end
         tallies[c] += v
     end
-    winner = classes[1]
-    winner_votes = votes[1]
+    winner::J = classes[1]
+    winner_votes::T = votes[1]
     for (c, v) = zip(keys(tallies), values(tallies))
         if v >  winner_votes
             winner = c
@@ -39,7 +39,7 @@ function knn_tally{T, J}(votes::Array{T, 1}, classes::Array{J, 1})
     return winner
 end
 
-function knn{T, J}(k::Int, train::Array{T, 2}, classes::Array{J, 1}, obs::Array{T, 1}, weighted=false)
+function knn{T, J}(k::Int, train::Matrix{T}, classes::Vector{J}, obs::Vector{T}, weighted=false)
     tmx, tmn = knn_maxmin(train)
     normtrain = knn_normalize(train, tmx, tmn)
     normobs = knn_normalize(obs, tmx, tmn)
@@ -53,6 +53,6 @@ function knn{T, J}(k::Int, train::Array{T, 2}, classes::Array{J, 1}, obs::Array{
     return knn_tally(normweights[nearest], classes[nearest])
 end
 
-function knn{T, J}(train::Array{T, 2}, classes::Array{J, 1}, obs::Array{T, 1})
+function knn{T, J}(train::Matrix{T}, classes::Vector{J}, obs::Vector{T})
     return knn(size(train, 1), train, classes, obs, true)
 end
