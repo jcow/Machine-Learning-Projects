@@ -1,5 +1,8 @@
+# Jason Cowan
+# ML Spring 2014
+
 using Base.Test
-require("jason_dev.jl")
+require("knn.jl")
 
 const eps = 0.01
 const train = [1.5 1.5; 2.5 2.5; 4.5 4.5; 5.5 5.5]
