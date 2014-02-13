@@ -28,30 +28,32 @@ test_norm = zero_one_normalize(test_data, test_mx, test_mn)
 
 
 
-bin_count = 100
+bin_count = 10
 
-universe = Dict()
+universe_totals = Dict()
+universe_counts = Dict()
+
 train_dims = size(train_norm)
 for i = 1:train_dims[1]
-	observation  = train_norm[i]
+	observation  = train_norm[i,:]
 	class = train_classes[i]
 
-	# make the bins
-    if !haskey(universe, class)
-    	universe[class] = zeros(Float64, train_dims[2], bin_count)
+    # make the bins
+    if !haskey(universe_counts, class)
+    	universe_counts[class] = zeros(Float64, train_dims[2], bin_count)
    	end
+
+    if !haskey(universe_totals, class)
+      universe_totals[class] = 0
+    end
 
 
    	#add to the correct bins
    	for j = 1:length(observation)
-   		universe[class][j, ceil(observation[j]*(bin_count-1)+1)] += 1
+   		universe_counts[class][j, ceil(observation[j]*(bin_count-1)+1)] += 1
    	end
 
-end
-for i = 1:4
-	println(universe["lemon"][i][1])
-	println(universe["lemon"][i][end])
-end
+    universe_totals[class] += 1
 
-
+end
 
