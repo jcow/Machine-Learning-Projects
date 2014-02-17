@@ -11,7 +11,7 @@ function nb_zero_one_normalize{T}(D::Array{T, 2}, mx::Array{T, 1}, mn::Array{T, 
 end
 
 function nb_map_to_bin(value, bin_count)
-    return ceil(value*(bin_count-1)+1)
+    return value * (bin_count - 1) + 1 |> ceil |> int 
 end
 
 
@@ -91,7 +91,7 @@ function test_point{T,D,S}(
   )
 
   estimates = Dict{T,D}()
-  for (class, dims_n_bin) = zip(keys(universe_counts), values(universe_counts))
+  for (class, dims_n_bin) = universe_counts
     estimates[class] = 1
     for i = 1:length(test_point)
       matching_bin_index = nb_map_to_bin(test_point[i], bin_count)
