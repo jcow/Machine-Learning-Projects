@@ -14,18 +14,10 @@ function nb_map_to_bin(value, bin_count)
     return value * (bin_count - 1) + 1 |> ceil |> int 
 end
 
-
 function nb_percentage_correct{T}(guesses::Array{T,1}, actual::Array{T,1})
-  successes = 0
-  failures = 0
-  for i = 1:length(guesses)
-        if guesses[i] == actual[i]
-            successes += 1
-        else
-            failures += 1
-        end
-  end
-  return successes / (successes + failures)
+  guess_length = length(guesses)
+  tf = [guesses[i] == actual[i] ? 1 : 0 for i = 1:guess_length] |> sum
+  return  tf / guess_length
 end
 
 
@@ -96,8 +88,8 @@ function test_point{T,D,S}(
     for i = 1:length(test_point)
       matching_bin_index = nb_map_to_bin(test_point[i], bin_count)
       
-      m_estimate = 1
-      if (1 <= m_estimate && m_estimate <= matching_bin_index)
+      m_estimate = nb_m_estimate(0, 0, universe_totals[class])
+      if (1 <= matching_bin_index && matching_bin_index <= bin_count)
         m_estimate = nb_m_estimate(
                   dims_n_bin[i,matching_bin_index],
                   universe_dimension_counts[i, matching_bin_index],
