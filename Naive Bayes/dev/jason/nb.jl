@@ -6,7 +6,8 @@ end
 
 
 # normalize over the D by row with the min max of each column in mx mn
-function nb_zero_one_normalize{T}(D::Array{T, 2}, mx::Array{T, 1}, mn::Array{T, 1})
+function nb_zero_one_normalize{T}(D::Array{T, 2})
+    mx,mn = nb_max_min(train_data)
     return mapslices(x -> (x - mn) ./ (mx - mn), D, 2)
 end
 
@@ -114,13 +115,16 @@ function nb{T,S}(
   test_classes::Array{S,1}, 
   bin_count)
 
-  (universe_counts, universe_dimension_counts, universe_totals) = nb_make_universe(train_data, train_classes, bin_count)
+  norm_train_data = nb_zero_one_normalize(train_data)
+  norm_test_data = nb_zero_one_normalize(test_data)
 
-  test_dims = size(test_data)
+  (universe_counts, universe_dimension_counts, universe_totals) = nb_make_universe(norm_train_data, train_classes, bin_count)
+
+  test_dims = size(norm_test_data)
 
   guesses = Array(ASCIIString, test_dims[1])
   for i = 1:test_dims[1]
-    guesses[i] = test_point(universe_counts, universe_totals, universe_dimension_counts, vec(test_data[i,:]), bin_count)
+    guesses[i] = test_point(universe_counts, universe_totals, universe_dimension_counts, vec(norm_test_data[i,:]), bin_count)
   end
 
   return nb_percentage_correct(guesses, test_classes)
