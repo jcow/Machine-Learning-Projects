@@ -1,3 +1,3 @@
 #Machine-Learning-Projects
 
-This repository is used to store my machine learning projects that I've developed for my machine learning class.
+This repository is used to store machine learning projects that have been developed for a machine learning class.
