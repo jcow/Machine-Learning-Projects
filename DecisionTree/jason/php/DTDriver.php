@@ -35,13 +35,8 @@ $dt->setData($predictors)
 $dt->build();
 
 $correct = 0;
-$undefined_count = 0;
 foreach($test_data as $key=>$value){
 	$guess = (string)$dt->classify($value);
-
-	if($guess === 'undefined'){
-		$undefined_count++;
-	}
 
 	if($guess === $test_classes[$key]){
 		$correct++;
