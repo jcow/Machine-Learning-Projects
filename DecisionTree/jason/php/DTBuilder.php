@@ -48,23 +48,11 @@ class DTBuilder{
 				}
 			}
 
-
-
 			return $node;
 		}
 	}
 
-	public static function buildChild($column_name, $column_value, $decision, $children = array()){
-		return array(
-			'column_name'=>$column_name,
-			'column_value'=>$column_value,
-			'decision'=>$decision,
-			'children'=>$children
-		);
-	}
-
 	public static function getMatchingRows($attributes, $classes, $column, $value){
-		// get the rows that match this value
 		$new_attrs = array();
 		$new_classes = array();
 		foreach($attributes as $key=>$attr){
