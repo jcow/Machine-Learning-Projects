@@ -36,8 +36,6 @@ class CE{
 	private $g;
 	private $interior;
 
-	public $a = 0;
-
 	public function __construct($data, $classes, $pos, $neg){
 		$this->data = $data;
 		$this->classes = $classes;
@@ -192,13 +190,13 @@ class CE{
 			$class = $this->classes[$index];
 
 			if($this->isPositiveExample($class)){
-				if($this->isSMaxSpecific($this->s)){
-					$this->s = $row;
-				}
-				else{
-					$this->g = $this->pruneG($row, $this->s, $this->g);
-					$this->s = $this->makeNewS($row, $this->s, $this->g);
-				}
+					if($this->isSMaxSpecific($this->s)){
+						$this->s = $row;
+					}
+					else{
+						$this->g = $this->pruneG($row, $this->s, $this->g);
+						$this->s = $this->makeNewS($row, $this->s, $this->g);
+					}	
 			}
 			else{
 				$this->g = $this->makeNewG($row, $this->s, $this->g);

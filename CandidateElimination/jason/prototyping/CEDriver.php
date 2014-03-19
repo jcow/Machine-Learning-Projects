@@ -6,8 +6,10 @@ require_once('CE.php');
 $d = read_csv('data/trainingDataCandElim.csv');
 unset($d[0]);
 shuffle($d);
+
 $d_classes = col($d, 6);
 $d = rm_col($d, 6);
+
 
 $lrange = range(0, count($d)-10, 10);
 $hrange = range(10, count($d), 10);
@@ -18,16 +20,16 @@ $hrange = range(10, count($d), 10);
 $correct = 0;
 for($i = 0; $i < count($lrange); $i++){
 	$low = $lrange[$i];
-	$high = 10;
+	$amount = 10;
 
 	$new_data = $d;
 	$new_classes = $d_classes;
 
-	array_splice($new_data, $low, $high);
-	array_splice($new_classes, $low, $high);
+	array_splice($new_data, $low, $amount);
+	array_splice($new_classes, $low, $amount);
 
-	$classification_rows = array_slice($d, $low, $high);
-	$classification_classes = array_slice($d_classes, $low, $high);
+	$classification_rows = array_slice($d, $low, $amount);
+	$classification_classes = array_slice($d_classes, $low, $amount);
 
 	// var_dump(count($classification_rows));
 	// var_dump(count($classification_classes));
@@ -45,6 +47,7 @@ for($i = 0; $i < count($lrange); $i++){
 			$correct++;
 		}
 	}
+
 }
 
 // 	
