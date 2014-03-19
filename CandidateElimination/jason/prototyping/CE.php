@@ -27,14 +27,14 @@ $classes2 = array('pos', 'neg', 'pos', 'neg', 'pos');
 
 class CE{
 
-	private $data;
-	private $classes;
-	private $positive_val;
-	private $negative_val;
+	public $data;
+	public $classes;
+	public $positive_val;
+	public $negative_val;
 
-	private $s;
-	private $g;
-	private $interior;
+	public $s;
+	public $g;
+	public $interior;
 
 	public function __construct($data, $classes, $pos, $neg){
 		$this->data = $data;
@@ -100,7 +100,7 @@ class CE{
 
 	public function classify($row){
 		$arr = array_merge(array($this->s), $this->g, $this->interior);
-		
+
 		$matches = 0;
 		foreach($arr as $values){
 			$match = $this->match($values, $row);
@@ -108,7 +108,8 @@ class CE{
 				$matches++;
 			}
 		}
-		$nonmatches = count($values)-$matches;
+		$nonmatches = count($arr)-$matches;
+
 		if($matches === $nonmatches){
 			return 'undefined';
 		}
