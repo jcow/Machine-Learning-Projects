@@ -4,6 +4,17 @@ require_once('Utils.php');
 require_once('CE.php');
 require_once('Confusion.php');
 
+
+function foo($values){
+	for($i = 0; $i < count($values); $i++){
+		print($values[$i]);
+		if($i != count($values)-1){
+			print(",");
+		}
+	}
+
+}
+
 $d = read_csv('data/trainingDataCandElim.csv');
 unset($d[0]);
 shuffle($d);
@@ -14,15 +25,14 @@ $d = rm_col($d, 6);
 $bin_sizes = count($d)/10;
 $lrange = range(0, count($d)-$bin_sizes, $bin_sizes);
 
-
-
 $potential_values = array_merge(array_unique($d_classes), array('undefined'));
-
 
 $guesses = array();
 $correct = 0;
+$total_confusion = new Confusion($potential_values);
 $confusions = array();
 for($i = 0; $i < count($lrange); $i++){
+	$iterations_correct = 0;
 	$low = $lrange[$i];
 
 	$new_data = $d;
@@ -43,29 +53,36 @@ for($i = 0; $i < count($lrange); $i++){
 		$guess = $ce->classify($classification_rows[$j]);
 
 		if($guess === $classification_classes[$j]){
-			$correct++;
+			$iterations_correct++;
 		}
 
 		$c->add($guess, $classification_classes[$j]);
+		$total_confusion->add($guess, $classification_classes[$j]);
 	}
-
+	$c->setAccuracy($iterations_correct/$bin_sizes);
 	$confusions[] = $c;
+	$correct += $iterations_correct;
 }
 
-function p($matrix){
-	foreach($matrix as $k1=>$v1){
-		foreach($v1 as $k2=>$v2){
 
-		}
-	}
-}
 
+$counter = 1;
 foreach($confusions as $c){
-	p($c);
-	//$c->getMatrix();
+	print("--------------------------------------------------------------------------\n");
+	print("Iteration $counter \n");
+	p($c->getMatrix(), $c->getAccuracy());
+	$counter++;
+	print("\n");
 }
 
+print("\n\n");
+print("--------------------------------------------------------------------------\n");
+print("Totals \n");
+$total_confusion->setAccuracy($correct/count($d));
+p($total_confusion->getMatrix(), $total_confusion->getAccuracy());
+print("\n\n");
 
-
-var_dump($correct);
-var_dump($correct/count($d));
+// print("--------------------------------------------------------------------------\n");
+// print("Totals \n");
+// print("Correct Number: ".$correct."\n");
+// print("Correct Percentage: ".$correct/count($d)."\n");

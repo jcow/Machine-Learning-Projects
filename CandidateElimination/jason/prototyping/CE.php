@@ -3,28 +3,6 @@
 require_once('Utils.php');
 require_once('libs/Combinatorics.php');
 
-$data = array(
-	array('sunny', 'warm', 'normal', 'strong', 'warm', 'same'),
-	array('sunny', 'warm', 'high', 'strong', 'warm', 'same'),
-	array('rainy', 'cold', 'high', 'strong', 'warm', 'change'),
-	array('sunny', 'warm', 'high', 'strong', 'cool', 'change')
-);
-
-$classes = array('yes', 'yes', 'no', 'yes');
-
-
-$data2 = array(
-	array('Japan', 'Honda',	'Blue', '1980', 'Economy'),
-	array('Japan', 'Toyota', 'Green', '1970', 'Sports'),
-	array('Japan', 'Toyota', 'Blue', '1990', 'Economy'),
-	array('USA', 'Chrysler', 'Red', '1980', 'Economy'),
-	array('Japan', 'Honda', 'White', '1980', 'Economy')
-);
-
-$classes2 = array('pos', 'neg', 'pos', 'neg', 'pos');
-
-
-
 class CE{
 
 	public $data;
@@ -205,19 +183,9 @@ class CE{
 
 			$counter++;
 		}
-		// var_dump($this->s);
-		// var_dump($this->g);
 
 		$this->interior = $this->interiorExpressions($this->s, $this->g);
 
 	}
 
 }
-
-
-// $c = new CE($data, $classes, 'yes', 'no');
-// $c->run();
-// $v = $c->classify(array('a', 'warm', 'cool', 'b', 'something', 'something'));
-
-// $c = new CE($data2, $classes2, 'pos');
-// $c->run();

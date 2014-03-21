@@ -4,6 +4,7 @@
 class Confusion{
 
 	private $matrix = array();
+	private $accuracy = 0;
 
 	function __construct($potential_values){
 		$this->_makeBaseValues($potential_values);
@@ -11,6 +12,14 @@ class Confusion{
 
 	function add($guess, $actual){
 		$this->matrix[$guess][$actual]++;
+	}
+
+	function setAccuracy($accuracy){
+		$this->accuracy = $accuracy;
+	}
+
+	function getAccuracy(){
+		return $this->accuracy;
 	}
 
 	function getMatrix(){

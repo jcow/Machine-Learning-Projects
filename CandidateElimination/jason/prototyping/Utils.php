@@ -32,3 +32,17 @@ function read_csv($filename, $sep = ','){
 	}
 	return $ret;
 }
+
+function p($matrix, $accuracy){
+	print("--------------------------------------------------------------------------\n");
+	printf("|%-15.15s |%-15.15s  %-15.15s  %-15.15s |\n", '    Guesses', '', '     Actual', '');
+
+	$mask = "|%-15.15s |%-15.15s |%-15.15s |%-15.15s |\n";
+	printf($mask, '', 'Enjoy Sport', 'Do Not Enjoy', 'Undefined');
+
+	foreach($matrix as $k1=>$v){
+		printf($mask, ucfirst($k1), $v['Enjoy Sport'], $v['Do Not Enjoy'], $v['undefined']);		
+	}
+
+	printf("Percent Accurate: $accuracy\n");
+}
