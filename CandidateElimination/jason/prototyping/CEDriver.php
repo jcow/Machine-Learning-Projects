@@ -5,16 +5,6 @@ require_once('CE.php');
 require_once('Confusion.php');
 
 
-function foo($values){
-	for($i = 0; $i < count($values); $i++){
-		print($values[$i]);
-		if($i != count($values)-1){
-			print(",");
-		}
-	}
-
-}
-
 $d = read_csv('data/trainingDataCandElim.csv');
 unset($d[0]);
 shuffle($d);
