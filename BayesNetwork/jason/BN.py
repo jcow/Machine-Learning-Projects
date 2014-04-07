@@ -2,6 +2,7 @@ from __future__ import division
 import itertools
 import math
 from util import util
+import copy
 
 class BN:
 
@@ -11,6 +12,24 @@ class BN:
     def __init__(self, ns, classs):
         nodes = ns
         classes = classs
+
+
+    @staticmethod
+    def setup_node(node, nodes):
+        potential_parents = BN.pred(nodes)
+
+        p_old = BN.get_score(node, node.parents)
+        ok = True
+        while ok == True:
+            ""
+
+    @staticmethod
+    def get_max_from_potential_parents(node, potential_parents):
+        for pparent in potential_parents:
+            potential_new_parents = copy.deepcopy(node.parents)
+            potential_new_parents.append(pparent)
+            do some other fun things
+
 
     @staticmethod
     def pred(item, lst):
