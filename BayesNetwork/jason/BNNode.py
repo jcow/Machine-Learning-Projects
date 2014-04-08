@@ -7,5 +7,7 @@ class BNNode:
     parents = []
 
     def __init__(self, vals, row_vals):
+        name = ""
         self.values = vals
         self.row_values = row_vals
+        self.parents = []
