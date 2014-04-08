@@ -3,6 +3,7 @@ import itertools
 import math
 from util import util
 import copy
+import sys
 
 class BN:
 
@@ -16,20 +17,49 @@ class BN:
 
     @staticmethod
     def setup_node(node, nodes):
-        potential_parents = BN.pred(nodes)
 
         p_old = BN.get_score(node, node.parents)
+
+        pred = BN.pred(node, nodes)
+        pred_length = len(pred)
+
         ok = True
-        while ok == True:
-            ""
+        while ok and len(node.parents) < pred_length:
+            new_pred = BN.remove_parental_diff_from_pred(node, pred)
+            ret = BN.get_max_from_potential_parents(node, new_pred)
+
+            if ret[0] > p_old:
+                p_old = ret[0]
+                # print node.name
+                # print ret[1].name
+                node.parents.append(ret[1])
+            else:
+                ok = False
 
     @staticmethod
     def get_max_from_potential_parents(node, potential_parents):
+        max_node = None
+        max_score = -sys.float_info.max
+
         for pparent in potential_parents:
             potential_new_parents = copy.deepcopy(node.parents)
             potential_new_parents.append(pparent)
-            do some other fun things
+            score = BN.get_score(node, potential_new_parents)
 
+            if max_score < score:
+                max_score = score
+                max_node = pparent
+
+        return (max_score, max_node)
+
+    # looks at the parents of a node and the predecessors and removes any nodes from predecessors that exist in the
+    # parent
+    @staticmethod
+    def remove_parental_diff_from_pred(node, pred):
+        for parent in node.parents:
+            if parent in pred:
+                pred.remove(parent)
+        return pred
 
     @staticmethod
     def pred(item, lst):
@@ -60,6 +90,7 @@ class BN:
             for prod in cart_prods:
                 n_ijk_list = BN.match_counts(child, parents, prod)
                 n_ij = sum(n_ijk_list)
+                score += BN.make_score(n_ijk_list, n_ij, r_i)
 
         return score
 

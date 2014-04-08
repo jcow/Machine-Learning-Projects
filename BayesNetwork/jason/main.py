@@ -32,6 +32,23 @@ def get_data():
 
 nodes, classes = get_data()
 
-score = BN.get_score(nodes[0], [])
+i = 0
+for node in nodes:
+    if i == 4:
+        print "::::::: "+node.name
+        BN.setup_node(node, nodes)
 
-print score
+    i += 1
+    # if i == 3:
+    #     break
+
+p = 0
+for node in nodes:
+    print node.name
+    for n in node.parents:
+        print "\t"+n.name
+    print "----------"
+
+    p += 1
+    # if p == 3:
+    #     break

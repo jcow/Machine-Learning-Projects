@@ -2,9 +2,38 @@ from unittest import TestCase
 from BN import BN
 from BNNode import BNNode
 from util import util
+from KFold import KFold
 import math
 
+
 __author__ = 'Jason'
+
+
+class TestKFold(TestCase):
+
+    def test_get_next(self):
+        data = [1,2,3,4,5,6]
+        classes = ['a', 'b', 'c', 'd', 'e', 'f']
+
+        kfold = KFold(3, data, classes)
+        d1, c1 = kfold.get_next()
+        d2, c2 = kfold.get_next()
+
+        self.assertEquals(1, d1[0])
+        self.assertEquals(2, d1[1])
+        self.assertEquals(3, d1[2])
+
+        self.assertEquals('a', c1[0])
+        self.assertEquals('b', c1[1])
+        self.assertEquals('c', c1[2])
+
+        self.assertEquals(4, d2[0])
+        self.assertEquals(5, d2[1])
+        self.assertEquals(6, d2[2])
+
+        self.assertEquals('d', c2[0])
+        self.assertEquals('e', c2[1])
+        self.assertEquals('f', c2[2])
 
 class TestUtil(TestCase):
     def test_log_fact(self):
@@ -16,6 +45,21 @@ class TestUtil(TestCase):
         self.assertEquals(a, b)
 
 class TestBN(TestCase):
+
+    def test_remove_parental_diff_from_pred(self):
+        a = BNNode([], [])
+        b = BNNode([], [])
+        c = BNNode([], [])
+        pred = [a,b,c]
+
+        node = BNNode([], [])
+        node.parents = [c]
+
+        new_pred = BN.remove_parental_diff_from_pred(node, pred)
+        self.assertEquals(2, len(new_pred))
+        self.assertEquals(True, new_pred[0] == a)
+        self.assertEquals(True, new_pred[1] == b)
+
 
     def test_pred(self):
         a = BNNode([], [])
