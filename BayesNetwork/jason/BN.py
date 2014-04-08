@@ -19,9 +19,9 @@ class BN:
     @staticmethod
     def setup_node(node, nodes):
 
-        b = BNNode([], [])
-        b.name = "aaaaa"
-        node.parents.append(b)
+        foo = BNNode([], [])
+        foo.name = "foo"
+        node.parents.append(foo)
 
         # p_old = BN.get_score(node, node.parents)
         #
