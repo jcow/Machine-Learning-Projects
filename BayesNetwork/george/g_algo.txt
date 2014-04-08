@@ -1,0 +1,21 @@
+Function g(i,set of parents){
+    Set score = 1
+    If set of parents is empty
+        Nij is the size of entire training set and Sv is entire training set
+        Score *= (r_i-1)! / (N_{ij}+r_i-1)!
+        For each child instantiation (e.g. 0 and 1)
+            Get count of training record subset items (in Sv)
+            That will be Nijk (in the case of two instantiations there will be two Nijk’s, and ri = 2)
+            Score *= N_{ijk}!
+    Else
+        Get parental instantiations (e.g. 00,01,10,11)
+        For each parental instantiation
+            Get the training records that match (Sv)
+            Size of that set is Nij
+            Score *= (r_i-1)! / (N_{ij}+r_i-1)!
+            For each child instantiation (e.g. 0 and 1)
+                Get count of training record subset items (in Sv)
+                That will be Nijk (in the case of two instantiations there will be two Nijk’s, and ri = 2)
+                Score *= N_{ijk}!
+    Return Score
+}
