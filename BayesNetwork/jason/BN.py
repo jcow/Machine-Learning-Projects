@@ -2,6 +2,7 @@ from __future__ import division
 import itertools
 import math
 from util import util
+from BNNode import BNNode
 import copy
 import sys
 
@@ -18,23 +19,27 @@ class BN:
     @staticmethod
     def setup_node(node, nodes):
 
-        p_old = BN.get_score(node, node.parents)
+        b = BNNode([], [])
+        b.name = "aaaaa"
+        node.parents.append(b)
 
-        pred = BN.pred(node, nodes)
-        pred_length = len(pred)
-
-        ok = True
-        while ok and len(node.parents) < pred_length:
-            new_pred = BN.remove_parental_diff_from_pred(node, pred)
-            ret = BN.get_max_from_potential_parents(node, new_pred)
-
-            if ret[0] > p_old:
-                p_old = ret[0]
-                # print node.name
-                # print ret[1].name
-                node.parents.append(ret[1])
-            else:
-                ok = False
+        # p_old = BN.get_score(node, node.parents)
+        #
+        # pred = BN.pred(node, nodes)
+        # pred_length = len(pred)
+        #
+        # ok = True
+        # while ok and len(node.parents) < pred_length:
+        #     new_pred = BN.remove_parental_diff_from_pred(node, pred)
+        #     ret = BN.get_max_from_potential_parents(node, new_pred)
+        #
+        #     if ret[0] > p_old:
+        #         p_old = ret[0]
+        #         # print node.name
+        #         # print ret[1].name
+        #         node.parents.append(ret[1])
+        #     else:
+        #         ok = False
 
     @staticmethod
     def get_max_from_potential_parents(node, potential_parents):

@@ -31,16 +31,15 @@ def get_data():
 
 
 nodes, classes = get_data()
+BN.setup_node(nodes[0], nodes)
 
-i = 0
-for node in nodes:
-    if i == 4:
-        print "::::::: "+node.name
-        BN.setup_node(node, nodes)
-
-    i += 1
-    # if i == 3:
-    #     break
+# i = 0
+# for node in nodes:
+#     BN.setup_node(node, nodes)
+#
+#     i += 1
+#     # if i == 3:
+#     #     break
 
 p = 0
 for node in nodes:
