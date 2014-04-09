@@ -1,9 +1,3 @@
-
-type Attr
-    vals
-    data
-end
-
 function cart_prod(sets...)
     result_size = length(sets)
     result_elems = reduce(*, 1, map(length, sets))
@@ -21,23 +15,24 @@ function cart_prod(sets...)
     return result
 end
 
-function cart_prod(attrs::Attr...)
-    vals_list = [a.vals for a = attrs]
-    return cart_prod(vals_list...)
-end
-
-function find_insts(attrs::Vector{Attr}, values::Vector)
-    @assert length(attrs) == length(values)
-    n = length(attrs)
-    final = trues(n)
-    for i = 1:n
-        final = final & (attrs[i].data .== values[i])
+function find_insts(D::Matrix, attrs::Vector{Int}, values::Vector)
+    return map(1:size(D, 1)) do i_inst
+        D[i_inst, attrs] == values
     end
-    return final
 end
 
-function g(i, pi_i)
+# Variables
+# ---------
+# D - a data matrix, columns are attributes and rows are instantiations
+# pi_i - a vector of column indices into the D matrix
+# i - index of the attribute (column) in D currently being considered
+# x_i - the actual column being considered
+
+function g(D, i, pi_i)
     score = 1
+
+    # Currently considered attribute values
+    x_i = D[:, i]
 
     # All possible values of x_i
     V_i = unique(x_i)
@@ -59,34 +54,66 @@ function g(i, pi_i)
         end
     else
         # Get all possible parental instantiations and count how many there are
-        phi_i = cart_prod(pi_i...)
+        phi_i = cart_prod([unique(D[:, k]) for k = pi_i]...)
         q_i = size(phi_i, 1)
 
         for j = 1:q_i
             # All training records that match the current parental
             # instantiation
-            S_v = find_insts(pi_i, vec(phi_i[i, :]))
-            # ^
-            # TODO: maybe just use matrices instead of vector of Attr objects? pass
-            # in a column index (or vector of column indices in case of pi_i)
-            # instead of the actual Attr objects, so everything just references
-            # the dataset D, which would be a matrix
+            S_v = find_insts(D, pi_i, vec(phi_i[j, :]))
             N_ij = length(S_v)
 
             score *= factorial(r_i - 1) / factorial(N_ij + r_i - 1)
 
-            # Count child crap
+            # Count child instances in S_v
             for v_c = V_i
-                # TODO
+                N_ijk = count(x -> x == v_c, x_i[S_v])
+                score *= factorial(N_ijk)
             end
         end
     end
+
+    return score
 end
 
+function argmax(f, args::Vector)
+    vals = map(args) do x
+        f(x)
+    end
+    return indmax(args)
+end
 
+function pred(order::Vector, i::Int)
+    return order[1:i-1]
+end
 
+function pred(order::Vector, i::Int, pi_i::Vector)
+    return setdiff(pred(order, i), pi_i)
+end
 
+# Variables
+# ---------
+# order - a vector of integers that define the order in which to consider the
+#         columns of D
+# nodes - a vector of node names for the columns of D
+# u - upper bound on the number of parents
 
-
-
-
+function k2(D, nodes, order, u)
+    for i = 1:length(nodes)
+        pi_i = []
+        P_old = g(i, pi_i)
+        ok = true
+        while ok
+            preds = pred(order, i, pi_i)
+            z = argmax(x -> g(D, i, [pi_i, x]), preds)
+            P_new = f(D, i, [pi_i, preds[z]])
+            if P_new > P_old
+                P_old = P_new
+                pi_i = [pi_i, preds[z]]
+            else
+                ok = false
+            end
+        end
+        println("Node: ", nodes[i], " Parent of x_i: ", pi_i)
+    end
+end
