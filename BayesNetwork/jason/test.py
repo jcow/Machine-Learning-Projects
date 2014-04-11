@@ -3,11 +3,71 @@ from BN import BN
 from BNNode import BNNode
 from util import util
 from KFold import KFold
+from BNClassifier import BNClassifier
 import math
 
 
 __author__ = 'Jason'
 
+class TestBNClassifier(TestCase):
+
+    def test_get_max_class(self):
+        dict1 = {'a':10, 'b':11, 'c': 6}
+        dict2 = {'a':14, 'b':11, 'c': 6}
+
+        res1 = BNClassifier.get_max_class(dict1)
+        res2 = BNClassifier.get_max_class(dict2)
+
+        self.assertEquals('b', res1)
+        self.assertEquals('a', res2)
+
+    def test_get_count(self):
+
+        n1 = BNNode([], [])
+        n1.col_index = 0
+
+        n2 = BNNode([], [])
+        n2.col_index = 1
+
+        n3 = BNNode([], [])
+        n3.col_index = 2
+
+        n1.parents.append(n2)
+        n1.parents.append(n3)
+
+        cols = [1,2]
+        row = [0,1,0]
+        data = [[0,1,0], [0,1,0], [0,0,0], [0,1,0]]
+        classes = ['a', 'b', 'a', 'b']
+        poss = ['a', 'b']
+        counts = BNClassifier.get_count(row, n1, data, classes, poss)
+
+    def test_get_list_of_cols(self):
+        n1 = BNNode([], [])
+        n1.col_index = 0
+
+        n2 = BNNode([], [])
+        n2.col_index = 1
+
+        n3 = BNNode([], [])
+        n3.col_index = 2
+
+        n1.parents.append(n2)
+        n1.parents.append(n3)
+
+        col_list = BNClassifier.get_list_of_cols(n1)
+        self.assertEquals(1, col_list[0])
+        self.assertEquals(2, col_list[1])
+
+    def test_counts(self):
+        cols = [1,2]
+        row = [0,1,0]
+        data = [[0,1,1], [0,1,0], [0,0,0], [0,1,1]]
+        classes = ['a', 'b', 'a', 'b']
+        poss = ['a', 'b']
+        counts = BNClassifier.counts(cols, row, data, classes, poss)
+        self.assertEquals(1, counts['a'])
+        self.assertEquals(2, counts['b'])
 
 class TestKFold(TestCase):
 

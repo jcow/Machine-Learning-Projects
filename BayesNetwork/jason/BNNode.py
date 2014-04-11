@@ -1,6 +1,7 @@
 
 class BNNode:
 
+    col_index = -1
     name = ""
     values = []
     row_values = []
