@@ -17,8 +17,14 @@ end
 
 function find_insts(D::Matrix, attrs::Vector{Int}, values::Vector)
     return map(1:size(D, 1)) do i_inst
-        D[i_inst, attrs] == values
+        vec(D[i_inst, attrs]) == values
     end
+end
+
+function logfac(v)
+    map(1:v) do x
+        log(x)
+    end |> sum
 end
 
 # Variables
@@ -29,7 +35,7 @@ end
 # x_i - the actual column being considered
 
 function g(D, i, pi_i)
-    score = 1
+    score = 0.0
 
     # Currently considered attribute values
     x_i = D[:, i]
@@ -39,36 +45,34 @@ function g(D, i, pi_i)
     r_i = length(V_i)
 
     if length(pi_i) == 0
-        # N_{ij} is the size of the entire training set and S_v is the entire
-        # training set
+        # N_{ij} is the size of the entire training set
         N_ij = length(x_i)
-        S_v = D
         
-        score *= factorial(r_i - 1) / factorial(N_ij + r_i - 1)
+        score += logfac(r_i - 1.0) - logfac(N_ij + r_i - 1.0)
 
         # Count training set instantiations that match each possible value of
         # x_i
         for v_c = V_i
             N_ijk = count(x -> x == v_c, x_i)
-            score *= factorial(N_ijk)
+            score += logfac(N_ijk)
         end
     else
         # Get all possible parental instantiations and count how many there are
-        phi_i = cart_prod([unique(D[:, k]) for k = pi_i]...)
+        phi_i = cart_prod([unique(D[:, k]) for k = pi_i]...) # FIXME
         q_i = size(phi_i, 1)
 
         for j = 1:q_i
             # All training records that match the current parental
             # instantiation
             S_v = find_insts(D, pi_i, vec(phi_i[j, :]))
-            N_ij = length(S_v)
+            N_ij = sum(S_v)
 
-            score *= factorial(r_i - 1) / factorial(N_ij + r_i - 1)
+            score += logfac(r_i - 1) - logfac(N_ij + r_i -1)
 
             # Count child instances in S_v
             for v_c = V_i
                 N_ijk = count(x -> x == v_c, x_i[S_v])
-                score *= factorial(N_ijk)
+                score += logfac(N_ijk)
             end
         end
     end
@@ -80,7 +84,7 @@ function argmax(f, args::Vector)
     vals = map(args) do x
         f(x)
     end
-    return indmax(args)
+    return indmax(vals)
 end
 
 function pred(order::Vector, i::Int)
@@ -98,15 +102,19 @@ end
 # nodes - a vector of node names for the columns of D
 # u - upper bound on the number of parents
 
-function k2(D, nodes, order, u)
-    for i = 1:length(nodes)
+function k2(D, nodes, order, u=2)
+    parents = Dict{Int,Vector{Int}}()
+    for i = order
         pi_i = []
-        P_old = g(i, pi_i)
+        P_old = g(D, i, pi_i)
         ok = true
-        while ok
+        while ok && length(pi_i) < u
             preds = pred(order, i, pi_i)
+            if length(preds) == 0
+                break
+            end
             z = argmax(x -> g(D, i, [pi_i, x]), preds)
-            P_new = f(D, i, [pi_i, preds[z]])
+            P_new = g(D, i, [pi_i, preds[z]])
             if P_new > P_old
                 P_old = P_new
                 pi_i = [pi_i, preds[z]]
@@ -114,6 +122,52 @@ function k2(D, nodes, order, u)
                 ok = false
             end
         end
-        println("Node: ", nodes[i], " Parent of x_i: ", pi_i)
+        parents[i] = [pi_i, i]
     end
+    return parents
 end
+
+# Variables
+# ---------
+# D - the dataset
+# C - the classes
+# tree - the structure returned by k2
+# inst - the instance to be classified
+
+function classify(D, C, tree, inst, m=-1, p=-1)
+    N = size(D, 1)
+    # Set up the m-estimator parameters
+    if m == -1
+        mval = N
+    else
+        mval = m
+    end
+
+    if p == -1
+        pval = 1.0 / mval
+    else
+        pval = p
+    end
+    # Do the classification
+    classes = unique(C)
+    cls_scores = map(classes) do cls
+        map(1:length(inst)) do i_node
+            ns = tree[i_node]
+            mc = count(x -> vec(D[x, ns]) == inst[ns] && C[x] == cls, 1:N)
+            (mc + mval * p) / (N + mval)
+        end |> prod
+    end
+    return classes[indmax(cls_scores)]
+end
+
+
+
+
+
+
+
+
+
+
+
+
