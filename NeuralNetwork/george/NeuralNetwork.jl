@@ -72,6 +72,59 @@ function reweighted(neuron::Neuron, input::Matrix, error::FloatingPoint)
     return Neuron(neuron.wts + deltawts, neuron.tport, neuron.lrate)
 end
 
+# ------------
+# Network type
+# ------------
+
+immutable NeuralNetwork
+    layers::Dict{Int,Vector{Neuron}}
+    dims::Vector{Int}
+end
+
+function NeuralNetwork(dims::Vector{Int}, n_inputs::Int)
+    n_weights = n_inputs
+    layers = Dict{Int,Vector{Neuron}}()
+    for i = 1:length(dims)
+        layers[i] = [Neuron(n_weights) for _ = 1:dims[i]]
+        n_weights = dims[i]
+    end
+    return NeuralNetwork(layers, dims)
+end
+
+# ---------------
+# Network methods
+# ---------------
+
+function output(net::NeuralNetwork, data::Matrix)
+    # Quick and dirty check for dimension agreement
+    @assert size(data) == (1, length(net.layers[1][1].wts) - 1)
+
+    out = Dict{Int,Matrix}()
+    nextdata = data
+    for i_layer = 1:length(net.dims)
+        nextout = output(net.layers[i_layer], nextdata)
+        out[i_layer] = nextout
+        nextdata = nextout
+    end
+
+    return out
+end
+
+# Compute errors for the entire network
+function network_error(net::NeuralNetwork, outputs::Dict{Int,Matrix}, target::Matrix)
+    errs = Dict{Int,Vector}()
+
+    lasterr = layer_error(outputs[length(net.dims)], target)
+    errs[length(net.dims)] = lasterr
+
+    for i_layer = (length(net.dims) - 1):-1:1
+        errs[i_layer] = layer_error(outputs[i_layer], net.layers[i_layer + 1], lasterr)
+        lasterr = errs[i_layer]
+    end
+
+    return errs
+end
+
 # -------------
 # Layer methods
 # -------------
@@ -88,14 +141,14 @@ function layer_error(output::Matrix, target::Matrix)
     # Check that the output and target sizes match
     @assert size(output) == size(target)
 
-    return output .* (1 - output) .* (target - output) |> transpose
+    return output .* (1 - output) .* (target - output) |> vec
 end
 
 # Compute errors for a hidden layer
-function layer_error(output::Matrix, nextlayer::Vector{Neuron}, nexterrors::Matrix)
-    return map(1:length(nexterrors)) do i
-        wts = [neuron.wts[i] for neuron = nextlayer]
-        output[i] * (1 - output[i]) * (nexterrors * wts |> first)
+function layer_error(output::Matrix, nextlayer::Vector{Neuron}, nexterrors::Vector)
+    return map(1:length(output)) do i
+        wts = [neuron.wts[i] for neuron = nextlayer] |> transpose
+        output[i] * (1 - output[i]) * (wts * nexterrors |> first)
     end
 end
 

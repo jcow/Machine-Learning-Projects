@@ -69,7 +69,7 @@ function test_hidden_errors()
     n2 = Neuron([0.05, 0.05])
     lout = [0.519053 0.519053]
     nlay = [Neuron([0.05, 0.05]), Neuron([0.05, 0.05])]
-    nerr = [-0.1295578 -0.1295578]
+    nerr = [-0.1295578, -0.1295578]
     ehid = layer_error(lout, nlay, nerr)
 
     @assert all(abs(ehid) - 0.003 .< 0.001)
@@ -92,6 +92,51 @@ function test_layer_reweight()
 end
 
 test_layer_reweight()
+
+# ------------
+# Test network
+# ------------
+
+function test_network()
+    nt1 = NeuralNetwork([3,4,3], 4)
+
+    @assert length(nt1.layers[1]) == 3
+    @assert length(nt1.layers[2]) == 4
+    @assert length(nt1.layers[3]) == 3
+
+    @assert all([length(nrn.wts) == 4 + 1 for nrn = nt1.layers[1]])
+    @assert all([length(nrn.wts) == 3 + 1 for nrn = nt1.layers[2]])
+    @assert all([length(nrn.wts) == 4 + 1 for nrn = nt1.layers[3]])
+end
+
+test_network()
+
+# -------------------
+# Test network output
+# -------------------
+
+function test_network_output()
+    nt1 = NeuralNetwork([3,4,3], 4)
+    ntout = output(nt1, [1 1 1 1])
+
+    println(ntout)
+end
+
+test_network_output()
+
+# -------------------
+# Test network errors
+# -------------------
+
+function test_network_error()
+    nt1 = NeuralNetwork([3,4,3], 4)
+    ntout = output(nt1, [1 1 1 1])
+    nterr = network_error(nt1, ntout, [0 0 0])
+
+    println(nterr)
+end
+
+test_network_error()
 
 
 
