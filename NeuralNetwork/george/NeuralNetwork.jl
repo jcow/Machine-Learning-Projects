@@ -28,7 +28,7 @@ type Layer
 end
 
 function Layer(n_nodes::Int, n_weights::Int)
-    weights = zeros(n_weights+1, n_nodes) + 0.05
+    weights = (rand(n_weights+1, n_nodes) - 0.5) .% RAND_WT_LIMIT
     outputs = zeros(1, n_nodes)
     inputs = zeros(1, n_weights+1)
     errors = zeros(1, n_nodes)
@@ -129,7 +129,3 @@ function reviseweights(layer::Layer, lrate::FloatingPoint=LEARN_RATE)
     layer.weights = weights + deltas
     return layer
 end
-
-# net = Network([2,2,2], 1)
-# net = train(net, [1] |> transpose, [0 0])
-# println(net)
