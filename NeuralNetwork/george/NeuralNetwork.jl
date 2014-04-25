@@ -1,164 +1,131 @@
-# NeuralNetwork.jl
-# George Lesica
+# Neural.jl
+# George Lesica <george@lesica.com>
 
 # ---------
 # Constants
 # ---------
 
-# Randomly assigned initial weights will be in the range of +/- this value.
 const RAND_WT_LIMIT = 0.05
-const LEARN_RATE = 0.001
+const LEARN_RATE = 0.05
 
 # ----------------
 # Helper functions
 # ----------------
 
 function sigmoid(x)
-    return 1.0 / (1.0 + e ^ (-x))
+    1.0 ./ (1.0 + e .^ (-x))
 end
 
-# -----------------
-# Neuron definition
-# -----------------
+# ----------
+# Data types
+# ----------
 
-immutable Neuron
-    wts::Vector
-    tport::Function
-    lrate::FloatingPoint
+type Layer
+    weights::Matrix
+    outputs::Matrix
+    inputs::Matrix
+    errors::Matrix
 end
 
-function Neuron(wts, tport)
-    return Neuron(wts, tport, LEARN_RATE)
+function Layer(n_nodes::Int, n_weights::Int)
+    weights = (rand(n_weights+1, n_nodes) - 0.5) .% RAND_WT_LIMIT
+    outputs = zeros(1, n_nodes)
+    inputs = zeros(1, n_weights+1)
+    errors = zeros(1, n_nodes)
+    return Layer(weights, outputs, inputs, errors)
 end
 
-function Neuron(n_inputs::Int)
-    # Use sigmoid for default transport function
-    tport = sigmoid
-    # Use random weights from -RAND_WT_LIMIT to RAND_WT_LIMIT and add one
-    # weight for the bias
-    wts = (rand(n_inputs + 1) - 0.5) .% RAND_WT_LIMIT
-
-    return Neuron(wts, tport)
+type Network
+    layers::Vector{Layer}
 end
 
-function Neuron(wts::Vector)
-    # Use sigmoid for default transport function
-    tport = sigmoid
-    
-    return Neuron(wts, tport)
-end
-
-# --------------
-# Neuron methods
-# --------------
-
-# Compute the output for a single neuron
-function output(neuron::Neuron, input::Matrix)
-    # Check that the input is the right size for the neuron
-    @assert size(input) == (1, length(neuron.wts) - 1)
-
-    return [1 input] * neuron.wts |> first |> neuron.tport
-end
-
-function reweighted(neuron::Neuron, input::Matrix, error::FloatingPoint)
-    # Check that the input sizes match up
-    @assert size(input) == (1, length(neuron.wts) - 1)
-
-    adjinput = [1 input]
-    deltawts = map(1:length(neuron.wts)) do i
-        neuron.lrate * error * adjinput[i]
+function Network(layer_dims::Vector{Int}, input_dim::Int)
+    dims = [input_dim, layer_dims]
+    layers = map(2:length(dims)) do i
+        Layer(dims[i], dims[i-1])
     end
-
-    return Neuron(neuron.wts + deltawts, neuron.tport, neuron.lrate)
-end
-
-# ------------
-# Network type
-# ------------
-
-immutable NeuralNetwork
-    layers::Dict{Int,Vector{Neuron}}
-    dims::Vector{Int}
-end
-
-function NeuralNetwork(dims::Vector{Int}, n_inputs::Int)
-    n_weights = n_inputs
-    layers = Dict{Int,Vector{Neuron}}()
-    for i = 1:length(dims)
-        layers[i] = [Neuron(n_weights) for _ = 1:dims[i]]
-        n_weights = dims[i]
-    end
-    return NeuralNetwork(layers, dims)
+    return Network(layers)
 end
 
 # ---------------
 # Network methods
 # ---------------
 
-function output(net::NeuralNetwork, data::Matrix)
-    # Quick and dirty check for dimension agreement
-    @assert size(data) == (1, length(net.layers[1][1].wts) - 1)
-
-    out = Dict{Int,Matrix}()
-    nextdata = data
-    for i_layer = 1:length(net.dims)
-        nextout = output(net.layers[i_layer], nextdata)
-        out[i_layer] = nextout
-        nextdata = nextout
+# Classifies one input
+function classify(network::Network, inputs::Matrix)
+    layers = network.layers
+    nxinputs = inputs
+    # Feed forward
+    for i_layer = 1:length(layers)
+        layers[i_layer] = feedforward(layers[i_layer], nxinputs)
+        nxinputs = layers[i_layer].outputs
     end
-
-    return out
+    maxout = layers[end].outputs |> indmax
+    return maxout
 end
 
-# Compute errors for the entire network
-function network_error(net::NeuralNetwork, outputs::Dict{Int,Matrix}, target::Matrix)
-    errs = Dict{Int,Vector}()
-
-    lasterr = layer_error(outputs[length(net.dims)], target)
-    errs[length(net.dims)] = lasterr
-
-    for i_layer = (length(net.dims) - 1):-1:1
-        errs[i_layer] = layer_error(outputs[i_layer], net.layers[i_layer + 1], lasterr)
-        lasterr = errs[i_layer]
+# Runs one training sample through network
+function train(network::Network, inputs::Matrix, targets::Matrix)
+    layers = network.layers
+    nxinputs = inputs
+    # Feed forward
+    for i_layer = 1:length(layers)
+        layers[i_layer] = feedforward(layers[i_layer], nxinputs)
+        nxinputs = layers[i_layer].outputs
     end
-
-    return errs
+    # Back propagate
+    for i_layer = length(layers):-1:1
+        if i_layer == length(layers)
+            layers[i_layer] = backprop(layers[i_layer], targets)
+        else
+            layers[i_layer] = backprop(layers[i_layer], layers[i_layer+1])
+        end
+    end
+    # Revise weights
+    for i_layer = 1:length(layers)
+        layers[i_layer] = reviseweights(layers[i_layer])
+    end
+    network.layers = layers
+    return network
 end
 
 # -------------
 # Layer methods
 # -------------
 
-# Compute the outputs for an entire layer
-function output(layer::Vector{Neuron}, input::Matrix)
-    return map(layer) do neuron
-        output(neuron, input)
-    end |> transpose
+# Produces a row vector of output values for neurons
+function feedforward(layer::Layer, inputs::Matrix, transfer=sigmoid)
+    weights = layer.weights
+    outputs = [1 inputs] * weights |> transfer
+    layer.outputs = outputs
+    layer.inputs = [1 inputs]
+    return layer
 end
 
-# Compute errors for the output layer
-function layer_error(output::Matrix, target::Matrix)
-    # Check that the output and target sizes match
-    @assert size(output) == size(target)
-
-    return output .* (1 - output) .* (target - output) |> vec
+# Produces a row vector of errors for neurons in an output layer
+function backprop(layer::Layer, targets::Matrix)
+    outputs = layer.outputs
+    errors = outputs .* (1 - outputs) .* (targets - outputs)
+    layer.errors = errors
+    return layer
 end
 
-# Compute errors for a hidden layer
-function layer_error(output::Matrix, nextlayer::Vector{Neuron}, nexterrors::Vector)
-    return map(1:length(output)) do i
-        wts = [neuron.wts[i] for neuron = nextlayer] |> transpose
-        output[i] * (1 - output[i]) * (wts * nexterrors |> first)
-    end
+# Produces a row vector of errors for neurons in a hidden layer
+function backprop(layer::Layer, nextlayer::Layer)
+    outputs = layer.outputs
+    nxerrors = nextlayer.errors
+    nxweights = nextlayer.weights
+    errors = outputs .* (1 - outputs) .* sum(nxerrors * transpose(nxweights))
+    layer.errors = errors
+    return layer
 end
 
-# Return a layer of neurons that have been reweighted
-function reweighted(layer::Vector{Neuron}, input::Matrix, errors::Vector)
-    return map(1:length(layer)) do i
-        reweighted(layer[i], input, errors[i])
-    end
+# Produces a matrix of weight deltas
+function reviseweights(layer::Layer, lrate::FloatingPoint=LEARN_RATE)
+    errors = layer.errors
+    inputs = layer.inputs
+    weights = layer.weights
+    deltas = transpose(inputs) * errors .* lrate
+    layer.weights = weights + deltas
+    return layer
 end
-
-
-
-
