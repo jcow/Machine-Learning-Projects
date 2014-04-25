@@ -64,7 +64,8 @@ function classify(network::Network, inputs::Matrix)
     return maxout
 end
 
-# Runs one training sample through network
+# Runs one training sample through network and returns the network with its
+# weights updated
 function train(network::Network, inputs::Matrix, targets::Matrix)
     layers = network.layers
     nxinputs = inputs
