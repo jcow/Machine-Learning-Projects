@@ -1,4 +1,5 @@
 from __future__ import division
+import sys
 
 import random
 import math
@@ -41,9 +42,23 @@ class Network:
                 neuron.update_weights(self.learning_rate)
 
     @staticmethod
-    def set_inputs(input_index, output, neuron_layer):
-        for i in neuron_layer:
-            neuron_layer[i].inputs[input_index] = output
+    def get_class_vec_from_output(neurons):
+        m = (-1, -sys.float_info.max)
+        counter = 0
+        for neuron in neurons:
+            if m[1] < neuron.output:
+                m = (counter, neuron.output)
+            counter += 1
+
+        v = [0] * len(neurons)
+        v[m[0]] = 1
+
+        return v
+
+    @staticmethod
+    def set_inputs(input_index, input, neuron_layer):
+        for neuron in neuron_layer:
+            neuron.inputs[input_index] = input
 
     @staticmethod
     def get_initial_neuron_weights(amount):
@@ -65,7 +80,8 @@ class Network:
 
 
     def _create_neurons(self, neuron_count_vec, weight_counts):
-        for i in range(0, len(neuron_count_vec)):
+        neuron_count_vec_length = len(neuron_count_vec)
+        for i in range(0, neuron_count_vec_length):
             self.neurons.append([])
             for j in range(0, neuron_count_vec[i]):
 
@@ -75,6 +91,9 @@ class Network:
                 inputs.append(1)
 
                 neuron = Neuron(i, j, weights, inputs)
+                if i == neuron_count_vec_length-1:
+                    neuron.is_output_layer = True
+
                 self.neurons[i].append(neuron)
 
 
